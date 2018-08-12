@@ -1,5 +1,9 @@
-.PHONY: 01
+folders = $(shell ls | grep 0)
 
-01: 01/main.ml
-	@ ocamlfind ocamlc -package batteries -linkpkg 01/main.ml -o 01/main
-	@ cat 01/input | 01/main
+.PHONY: no_default $(folders)
+
+no_default:
+
+$(folders): %: %/main.ml
+	@ ocamlfind ocamlc -package batteries -linkpkg $@/main.ml -o $@/main
+	@ cat $@/input | $@/main
