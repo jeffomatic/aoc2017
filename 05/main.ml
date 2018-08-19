@@ -12,6 +12,6 @@ let () =
     else
       let new_pos = pos + code.(pos) in
       code.(pos) <- code.(pos) + 1 ;
-      aux new_pos @@ (steps + 1)
+      aux new_pos (steps + 1)
   in
   aux 0 0 |> string_of_int |> print_endline
