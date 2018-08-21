@@ -1,4 +1,4 @@
-folders = $(shell ls | grep 0)
+folders = $(shell find . -name main.ml | xargs -n1 dirname | sed 's|^\./||')
 executables = $(patsubst %, %/main, $(folders))
 debug_rules = $(patsubst %, debug-%, $(folders))
 
