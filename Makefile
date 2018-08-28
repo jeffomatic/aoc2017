@@ -6,7 +6,7 @@ debug_targets = $(patsubst %, debug-%, $(folders))
 no_default:
 
 $(folders): %:%/main
-	@ if [ -f $@/input ]; then cat $@/input | OCAMLRUNPARAM=b $@/main; else $@/main; fi
+	@ if [ -f $@/input ]; then cat $@/input | OCAMLRUNPARAM=b $@/main; else OCAMLRUNPARAM=b $@/main; fi
 
 $(executables): %:%.ml
 	@ ocamlfind ocamlc -package batteries -linkpkg $@.ml -g -o $@
