@@ -115,9 +115,38 @@ let print_grid g =
       print_newline () )
     g
 
-let merge_regions from into p2r r2p =
-  if from = into then (p2r, r2p)
+let check_grid p grid =
+  let i, j = p in
+  i >= 0 && j >= 0 && (grid.(i)).(j)
+
+let north_of p =
+  let i, j = p in
+  (i - 1, j)
+
+let west_of p =
+  let i, j = p in
+  (i, j - 1)
+
+let point_key ij =
+  let i, j = ij in
+  string_of_int i ^ "-" ^ string_of_int j
+
+let region_of p regions =
+  let p2r, _ = regions in
+  Map.String.find (point_key p) p2r
+
+let add_region p regions =
+  let p2r, r2p = regions in
+  let r = Map.String.cardinal p2r in
+  let k = point_key p in
+  let p2r = Map.String.add k r p2r in
+  let r2p = Map.Int.add r [k] r2p in
+  (p2r, r2p)
+
+let merge_regions from into regions =
+  if from = into then regions
   else
+    let p2r, r2p = regions in
     let from_points = Map.Int.find from r2p in
     let to_points = Map.Int.find into r2p in
     let r2p = Map.Int.remove from r2p in
@@ -127,37 +156,32 @@ let merge_regions from into p2r r2p =
     in
     (p2r, r2p)
 
-let point i j = string_of_int i ^ "-" ^ string_of_int j
+let check_merge from into grid regions =
+  if not (check_grid into grid) then regions
+  else merge_regions (region_of from regions) (region_of into regions) regions
 
-let count_regions grid =
-  (* point to region *)
-  let p2r = ref Map.String.empty in
-  (* region to list of points *)
-  let r2p = ref Map.Int.empty in
-  for i = 0 to Array.length grid - 1 do
-    for j = 0 to Array.length grid - 1 do
-      if (grid.(i)).(j) then (
-        let r = (i * Array.length grid) + j in
-        let p = point i j in
-        p2r := Map.String.add p r !p2r ;
-        r2p := Map.Int.add r [p] !r2p ;
-        if i > 0 && (grid.(i - 1)).(j) then (
-          let other = Map.String.find (point (i - 1) j) !p2r in
-          let a, b = merge_regions r other !p2r !r2p in
-          p2r := a ;
-          r2p := b ) ;
-        let r = Map.String.find p !p2r in
-        if j > 0 && (grid.(i)).(j - 1) then (
-          let other = Map.String.find (point i (j - 1)) !p2r in
-          let a, b = merge_regions r other !p2r !r2p in
-          p2r := a ;
-          r2p := b ) )
-    done
-  done ;
-  Map.Int.cardinal !r2p
+let matrix_fold_lefti f acc mat =
+  Array.fold_lefti
+    (fun acc i row -> Array.fold_lefti (fun acc j v -> f acc (i, j) v) acc row)
+    acc mat
+
+let make_regions grid =
+  matrix_fold_lefti
+    (fun acc p populated ->
+      if not populated then acc
+      else
+        add_region p acc
+        |> check_merge p (north_of p) grid
+        |> check_merge p (west_of p) grid )
+    (Map.String.empty, Map.Int.empty)
+    grid
+
+let count_regions regions =
+  let _, r2p = regions in
+  Map.Int.cardinal r2p
 
 let () =
   let input = "amgozmfv" in
   let grid = make_grid input in
   print_grid grid ;
-  count_regions grid |> dump |> print_endline
+  make_regions grid |> count_regions |> dump |> print_endline
