@@ -9,7 +9,7 @@ $(folders): %:%/main
 	@ if [ -f $@/input ]; then cat $@/input | OCAMLRUNPARAM=b $@/main; else OCAMLRUNPARAM=b $@/main; fi
 
 $(executables): %:%.ml
-	@ ocamlfind ocamlc -package batteries -linkpkg $@.ml -g -o $@
+	@ ocamlfind ocamlopt -package batteries -linkpkg $@.ml -g -o $@
 
 $(debug_targets): debug-%:%/main
 	ocamldebug -cd $(@:debug-%=%) main
